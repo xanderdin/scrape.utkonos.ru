@@ -68,7 +68,8 @@ ROBOTSTXT_OBEY = True
 #    'utkonos.pipelines.SomePipeline': 300,
 #}
 ITEM_PIPELINES = {
-    'scrapy.pipelines.files.FilesPipeline': 1
+    'scrapy.pipelines.files.FilesPipeline': 1,
+    'utkonos.pipelines.SqlitePipeline': 100,
 }
 FILES_STORE = '000'
 FILES_URLS_FIELD = 'photo_urls'
@@ -94,3 +95,6 @@ FILES_RESULT_FIELD = 'photo_down'
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+
+SQLITE_FILE = "output.db"
