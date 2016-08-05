@@ -68,12 +68,12 @@ ROBOTSTXT_OBEY = True
 #    'utkonos.pipelines.SomePipeline': 300,
 #}
 ITEM_PIPELINES = {
-    'scrapy.pipelines.files.FilesPipeline': 1,
+#    'scrapy.pipelines.files.FilesPipeline': 1,
     'utkonos.pipelines.SqlitePipeline': 100,
 }
 FILES_STORE = '000'
-FILES_URLS_FIELD = 'photo_urls'
-FILES_RESULT_FIELD = 'photo_down'
+FILES_URLS_FIELD = 'product_photo_urls'
+FILES_RESULT_FIELD = 'product_photo_down'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -97,4 +97,7 @@ FILES_RESULT_FIELD = 'photo_down'
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 
+# Database file
 SQLITE_FILE = "output.db"
+# Commit once after so many processed items
+SQLITE_COMMIT_WATERMARK = 100

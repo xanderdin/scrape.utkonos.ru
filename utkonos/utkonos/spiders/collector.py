@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import re
+import html2text
 
 from scrapy.spiders import SitemapSpider
 
-from utkonos.items import ShopItem
+from utkonos.items import ProductItem
 
 
 class CollectorSpider(SitemapSpider):
@@ -18,64 +19,93 @@ class CollectorSpider(SitemapSpider):
 
     def parse_item(self, response):
 
-        item = ShopItem()
+        item = ProductItem()
 
         item['url'] = response.url
 
-        m = re.search('/item/(\d+)/(\d+)', response.url)
+        script = ''
+        for s in response.css('script::text').extract():
+            if ' dataLayer = ' in s:
+                script = s
+                break
 
+        m = re.search('productCategoryName.*:.*"(.+)"', script)
         if m:
-            item['cat_id'], item['item_id'] = m.groups()
+            item['category_name'] = m.group(1)
 
-        vendor_id = ' '.join(
-            response.css('div.item_menu_hash span::text').extract()
-        )
+        m = re.search('productCategoryId.*:.*"(.+)"', script)
+        if m:
+            item['category_id'] = m.group(1)
 
-        if vendor_id:
-            m = re.search('\W+:\s+(\d+)', vendor_id)
-            if m:
-                item['vendor_id'] = m.group(1)
+        m = re.search('productAvailability.*:.*"(.+)"', script)
+        if m and m.group(1) == 'available':
+            item['product_available'] = True
+        else:
+            item['product_available'] = False
 
-        item['name'] = ' '.join(
-            response.css('h1.goods_view_item-header::text').extract()
-        )
+        m = re.search('productId.*:.*"(.+)"', script)
+        if m:
+            item['product_id'] = m.group(1)
 
-        item['weight'] = ' '.join(
+        m = re.search('productName.*:.*"(.+)"', script)
+        if m:
+            item['product_name'] = m.group(1)
+
+        m = re.search('productVendorName.*:.*"(.+)"', script)
+        if m:
+            item['product_vendor_name'] = m.group(1)
+
+        m = re.search('productVendorId.*:.*"(.+)"', script)
+        if m:
+            item['product_vendor_id'] = m.group(1)
+
+        m = re.search('productPriceLocal.*:.*"(.+)"', script)
+        if m:
+            try:
+                item['product_price_now'] = float(m.group(1))
+            except:
+                pass
+
+        m = re.search('productOldPriceLocal.*:.*"(.+)"', script)
+        if m:
+            try:
+                item['product_price_old'] = float(m.group(1))
+            except:
+                pass
+
+        m = re.search("'currencyCode\'.*:.*'(.+)'", script)
+        if m:
+            item['product_currency'] = m.group(1)
+
+        item['product_weight_kg'] = re.sub('[^\d\.]+', '', ' '.join(
             response.css('div.goods_item_sale_unit b::text').extract()
-        )
+        ))
 
-        item['size'] = ' '.join(
+        item['product_size_mm'] = re.sub('[^\d\xd7]+', '', ' '.join(
             response.css('div.goods_item_size b::text').extract()
+        ))
+
+        item['product_description'] = html2text.HTML2Text().handle(
+            ' '.join(
+                response.css('.page_item_description div').extract()
+            )
         )
 
-        item['description'] = ' '.join(
-            response.css('.page_item_description div').extract()
-        )
-
-        item['properties'] = []
+        item['product_properties'] = []
         props = response.css('div.goods_item_properties div')
 
         for p in props:
             key = ' '.join(p.css('div span span::text').extract())
             val = ' '.join(p.css('div a::text').extract())
-            item['properties'].append({key: val})
+            item['product_properties'].append({key: val})
 
-        item['price_cur'] = ' '.join(
-            response.css('div.goods_price-item.current::text').extract()
-        )
+        item['product_photo_urls'] = []
 
-        item['price_old'] = ' '.join(
-            response.css('div.goods_price-item.old span::text').extract()
-        )
+        pics = response.css('.goods_pic > a::attr("data-pic-high")').extract()
 
-        if response.css('span.not_stock'):
-            item['available'] = False
-        else:
-            item['available'] = True
-
-        item['photo_urls'] = []
-
-        for img in response.css('.goods_pic > a::attr("data-pic-high")').extract():
-            item['photo_urls'].append(response.urljoin(re.sub('\?\d+$', '', img)))
+        for img in pics:
+            item['product_photo_urls'].append(
+                response.urljoin(re.sub('\?\d+$', '', img))
+            )
 
         yield item

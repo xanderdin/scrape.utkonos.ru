@@ -7,20 +7,22 @@
 
 from scrapy import Item, Field
 
-class ShopItem(Item):
+
+class ProductItem(Item):
     url = Field()
-    cat_id = Field()
-    item_id = Field()
-    vendor_id = Field()
-    name = Field()
-    category = Field()
-    weight = Field()
-    size = Field()
-    description = Field()
-    photo_urls = Field()
-    photo_down = Field()
-    properties = Field()
-    price_cur = Field()
-    price_old = Field()
-    min_amount = Field()
-    available = Field()
+    category_id = Field()
+    category_name = Field()
+    product_id = Field()
+    product_name = Field()
+    product_vendor_id = Field()
+    product_vendor_name = Field()
+    product_description = Field()
+    product_price_now = Field()
+    product_price_old = Field()
+    product_currency = Field()
+    product_weight_kg = Field()
+    product_size_mm = Field()
+    product_photo_urls = Field()
+    product_photo_down = Field()
+    product_properties = Field()
+    product_available = Field()
